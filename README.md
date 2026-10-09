@@ -5,7 +5,13 @@ Chuyển file phụ đề (.srt, .vtt) thành một file âm thanh. Có hai các
 - **Nhân bản giọng của bạn** (XTTS-v2): tải lên hoặc ghi âm 6 đến 30 giây giọng mẫu, app đọc phụ đề bằng giọng đó. Chạy hoàn toàn trên máy, hỗ trợ tiếng Việt và 16 ngôn ngữ khác.
 - **Giọng có sẵn** (Edge): nhẹ và nhanh, cần internet, không nhân bản giọng.
 
-Hai cách ghép: **theo mốc thời gian** (mỗi câu đúng thời điểm trong file, tự tăng tốc khi câu quá dài) hoặc **nối tiếp**.
+App có ba tab:
+
+- **Đọc văn bản**: dán văn bản hoặc mở file .txt, văn bản dài tự chia thành các đoạn.
+- **Đọc phụ đề**: đọc file SRT/VTT.
+- **Thư viện giọng nói**: lưu, nghe thử, đổi tên, xóa các giọng đã nhân bản. Ở hai tab đọc, mục "Lưu giọng mẫu này vào thư viện" lưu nhanh giọng đang dùng. Giọng lưu trong thư mục `voices` (đã đưa vào `.gitignore` để không bị đẩy lên GitHub).
+
+Hai cách ghép phụ đề: **theo mốc thời gian** (mỗi câu đúng thời điểm trong file, tự tăng tốc khi câu quá dài) hoặc **nối tiếp**.
 
 ## Cài đặt
 
