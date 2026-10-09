@@ -26,6 +26,10 @@ Lần chạy đầu sẽ cài thư viện (vài GB, gồm PyTorch) và tải mô
 
 Bấm đúp `build_exe.bat`. Script tự tạo môi trường, cài thư viện và build bằng PyInstaller. Kết quả nằm ở `dist\SRT-Voice-Studio\SRT-Voice-Studio.exe`; có thể nén cả thư mục này để chuyển sang máy khác (thư mục nặng vài GB vì có PyTorch). Mô hình XTTS không nằm trong `.exe`, app tải về lần chạy đầu. Build cần Python 3.10 đến 3.12 và mất 10 đến 30 phút.
 
+## Gặp lỗi "PyTorch was not found"
+
+Nguyên nhân thường gặp là Python quá mới (3.13 trở lên) nên PyTorch không cài được. Cài Python 3.11 từ python.org (tick "Add to PATH"), xóa thư mục `.venv`, rồi chạy lại `run.bat`. Bản `run.bat` mới tự kiểm tra và cài PyTorch.
+
 ## Gợi ý
 
 - Giọng mẫu càng sạch (không nhạc nền, không vang) thì giọng nhân bản càng giống.

@@ -1,4 +1,6 @@
 gradio>=4.44
+torch>=2.1,<2.9
+torchaudio>=2.1,<2.9
 coqui-tts>=0.24
 edge-tts>=6.1
 numpy

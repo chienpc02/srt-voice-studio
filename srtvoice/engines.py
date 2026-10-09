@@ -46,7 +46,15 @@ class XTTSEngine:
     def __init__(self, reference_wav: str, language: str = "vi"):
         # Người dùng đã đồng ý giấy phép CPML trong giao diện trước khi tới đây.
         os.environ["COQUI_TOS_AGREED"] = "1"
-        from TTS.api import TTS  # nạp muộn vì rất nặng
+        try:
+            import torch  # noqa: F401
+            from TTS.api import TTS  # nạp muộn vì rất nặng
+        except ImportError as e:
+            raise RuntimeError(
+                "Chưa cài PyTorch hoặc Coqui TTS. Mở PowerShell trong thư mục app và chạy: "
+                ".venv\\Scripts\\activate  rồi  pip install -r requirements.txt  "
+                "(cần Python 3.10 đến 3.12)."
+            ) from e
 
         device = pick_device()
         key = (self.MODEL, device)
