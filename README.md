@@ -1,9 +1,6 @@
 # SRT Voice Studio
 
-Chuyển file phụ đề (.srt, .vtt) thành một file âm thanh. Có hai cách chọn giọng:
-
-- **Nhân bản giọng của bạn** (XTTS-v2): tải lên hoặc ghi âm 6 đến 30 giây giọng mẫu, app đọc phụ đề bằng giọng đó. Chạy hoàn toàn trên máy, hỗ trợ tiếng Việt và 16 ngôn ngữ khác.
-- **Giọng có sẵn** (Edge): nhẹ và nhanh, cần internet, không nhân bản giọng.
+Đọc văn bản và phụ đề (.srt, .vtt) thành file âm thanh bằng giọng nhân bản của bạn (XTTS-v2): tải lên hoặc ghi âm 6 đến 30 giây giọng mẫu, app đọc bằng giọng đó. Chạy hoàn toàn trên máy, hỗ trợ tiếng Việt và 16 ngôn ngữ khác.
 
 App có ba tab:
 

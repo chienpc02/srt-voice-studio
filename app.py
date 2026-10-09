@@ -9,7 +9,7 @@ import time
 import gradio as gr
 
 from srtvoice.audioutil import save_audio
-from srtvoice.engines import EDGE_VOICES, XTTS_LANGS, EdgeEngine, XTTSEngine
+from srtvoice.engines import XTTS_LANGS, XTTSEngine
 from srtvoice.library import VoiceLibrary
 from srtvoice.parser import Cue, read_subtitle_file
 from srtvoice.textsplit import split_text
@@ -22,8 +22,6 @@ LIB = VoiceLibrary(os.path.join(_BASE, "voices"))
 SR = 24000
 _stop = threading.Event()
 
-ENGINE_CLONE = "Giọng nhân bản (XTTS, chạy trên máy)"
-ENGINE_EDGE = "Giọng có sẵn (Edge, cần internet)"
 CONSENT_TEXT = ("Tôi xác nhận giọng mẫu là giọng của tôi hoặc tôi được chủ giọng đồng ý, "
                 "và tôi đồng ý giấy phép mô hình XTTS-v2 (CPML, chỉ dùng phi thương mại).")
 
@@ -88,9 +86,7 @@ def delete_voice(voice_id, sure):
 
 # ---------------------------------------------------------------- chọn engine
 
-def make_synth(engine_name, ref_audio, voice_id, lang_name, consent, edge_voice, edge_rate, progress):
-    if engine_name == ENGINE_EDGE:
-        return EdgeEngine(EDGE_VOICES[edge_voice], int(edge_rate))
+def make_synth(ref_audio, voice_id, lang_name, consent, progress):
     if ref_audio:                       # mẫu mới tải lên: cần xác nhận quyền dùng giọng
         if not consent:
             raise gr.Error("Hãy tick xác nhận quyền dùng giọng mẫu.")
@@ -128,13 +124,12 @@ def load_text_file(path):
     return gr.update()
 
 
-def convert_text(text, engine_name, ref_audio, voice_id, lang_name, consent, edge_voice, edge_rate,
-                 gap_ms, fmt, progress=gr.Progress()):
+def convert_text(text, ref_audio, voice_id, lang_name, consent, gap_ms, fmt, progress=gr.Progress()):
     _stop.clear()
     chunks = split_text(text or "")
     if not chunks:
         raise gr.Error("Hãy nhập hoặc dán văn bản cần đọc.")
-    synth = make_synth(engine_name, ref_audio, voice_id, lang_name, consent, edge_voice, edge_rate, progress)
+    synth = make_synth(ref_audio, voice_id, lang_name, consent, progress)
     cues = [Cue(i, 0, 0, t) for i, t in enumerate(chunks, 1)]
     t0 = time.time()
     track, _ = build_track(
@@ -160,7 +155,7 @@ def preview_subtitles(sub_file):
     return f"{len(cues)} câu thoại, {chars} ký tự, dài khoảng {cues[-1].end / 60000:.1f} phút.\n\n{head}{more}"
 
 
-def convert_srt(sub_file, engine_name, ref_audio, voice_id, lang_name, consent, edge_voice, edge_rate,
+def convert_srt(sub_file, ref_audio, voice_id, lang_name, consent,
                 mode, fit, max_speedup, gap_ms, fmt, progress=gr.Progress()):
     _stop.clear()
     if not sub_file:
@@ -168,7 +163,7 @@ def convert_srt(sub_file, engine_name, ref_audio, voice_id, lang_name, consent, 
     cues = read_subtitle_file(sub_file)
     if not cues:
         raise gr.Error("Không đọc được câu thoại nào trong file phụ đề.")
-    synth = make_synth(engine_name, ref_audio, voice_id, lang_name, consent, edge_voice, edge_rate, progress)
+    synth = make_synth(ref_audio, voice_id, lang_name, consent, progress)
     t0 = time.time()
     track, report = build_track(
         cues, synth, sr=SR, mode="timed" if mode.startswith("Theo") else "sequential",
@@ -203,24 +198,17 @@ def test_voice(voice_id, lang_name, sample_text, progress=gr.Progress()):
 
 # ---------------------------------------------------------------- giao diện
 
-def voice_controls(tag):
+def voice_controls():
     """Khối chọn giọng dùng chung cho hai tab đọc."""
-    engine = gr.Radio([ENGINE_CLONE, ENGINE_EDGE], value=ENGINE_CLONE, label="Giọng đọc")
-    with gr.Group(visible=True) as clone_box:
-        pick = gr.Dropdown(choices=[], value=None, label="Giọng đã lưu trong thư viện")
-        ref = gr.Audio(label="Hoặc giọng mẫu mới: tải lên / ghi âm 6 đến 30 giây (ưu tiên hơn giọng đã lưu)",
-                       sources=["upload", "microphone"], type="filepath")
-        lang = gr.Dropdown(list(XTTS_LANGS), value="Tiếng Việt", label="Ngôn ngữ của nội dung")
-        consent = gr.Checkbox(label=CONSENT_TEXT)
-        with gr.Accordion("Lưu giọng mẫu này vào thư viện", open=False):
-            name = gr.Textbox(label="Tên giọng", placeholder="Ví dụ: Giọng của tôi")
-            save = gr.Button("Lưu giọng")
-    with gr.Group(visible=False) as edge_box:
-        edge_voice = gr.Dropdown(list(EDGE_VOICES), value="Hoài My (nữ, Việt)", label="Giọng")
-        edge_rate = gr.Slider(-50, 50, value=0, step=5, label="Tốc độ (%)")
-    engine.change(lambda e: (gr.update(visible=e == ENGINE_CLONE), gr.update(visible=e != ENGINE_CLONE)),
-                  engine, [clone_box, edge_box])
-    return engine, pick, ref, lang, consent, name, save, edge_voice, edge_rate
+    pick = gr.Dropdown(choices=[], value=None, label="Giọng đã lưu trong thư viện")
+    ref = gr.Audio(label="Hoặc giọng mẫu mới: tải lên / ghi âm 6 đến 30 giây (ưu tiên hơn giọng đã lưu)",
+                   sources=["upload", "microphone"], type="filepath")
+    lang = gr.Dropdown(list(XTTS_LANGS), value="Tiếng Việt", label="Ngôn ngữ của nội dung")
+    consent = gr.Checkbox(label=CONSENT_TEXT)
+    with gr.Accordion("Lưu giọng mẫu này vào thư viện", open=False):
+        name = gr.Textbox(label="Tên giọng", placeholder="Ví dụ: Giọng của tôi")
+        save = gr.Button("Lưu giọng")
+    return pick, ref, lang, consent, name, save
 
 
 with gr.Blocks(title="SRT Voice Studio") as demo:
@@ -234,8 +222,7 @@ with gr.Blocks(title="SRT Voice Studio") as demo:
                     t_text = gr.Textbox(label="Văn bản cần đọc", lines=12,
                                         placeholder="Dán hoặc gõ văn bản vào đây. Văn bản dài sẽ được tự chia thành các đoạn.")
                     t_file = gr.File(label="Hoặc mở file .txt", file_types=[".txt"], type="filepath")
-                    (t_engine, t_pick, t_ref, t_lang, t_consent, t_name, t_save,
-                     t_edge_voice, t_edge_rate) = voice_controls("t")
+                    t_pick, t_ref, t_lang, t_consent, t_name, t_save = voice_controls()
                 with gr.Column():
                     t_gap = gr.Slider(0, 1500, value=350, step=50, label="Khoảng nghỉ giữa các đoạn (ms)")
                     t_fmt = gr.Radio(["wav", "mp3"], value="mp3", label="Định dạng xuất")
@@ -252,8 +239,7 @@ with gr.Blocks(title="SRT Voice Studio") as demo:
                 with gr.Column():
                     s_sub = gr.File(label="File phụ đề (.srt, .vtt)", file_types=[".srt", ".vtt", ".txt"], type="filepath")
                     s_info = gr.Textbox(label="Xem nhanh", lines=7, interactive=False)
-                    (s_engine, s_pick, s_ref, s_lang, s_consent, s_name, s_save,
-                     s_edge_voice, s_edge_rate) = voice_controls("s")
+                    s_pick, s_ref, s_lang, s_consent, s_name, s_save = voice_controls()
                 with gr.Column():
                     s_mode = gr.Radio(["Theo mốc thời gian", "Nối tiếp"], value="Theo mốc thời gian", label="Cách ghép")
                     s_fit = gr.Checkbox(value=True, label="Tăng tốc câu dài hơn khoảng thời gian cho phép")
@@ -312,14 +298,14 @@ with gr.Blocks(title="SRT Voice Studio") as demo:
     # ---- đọc văn bản
     t_file.change(load_text_file, t_file, t_text)
     t_go.click(convert_text,
-               [t_text, t_engine, t_ref, t_pick, t_lang, t_consent, t_edge_voice, t_edge_rate, t_gap, t_fmt],
+               [t_text, t_ref, t_pick, t_lang, t_consent, t_gap, t_fmt],
                [t_player, t_dl, t_log])
     t_halt.click(stop, None, t_log)
 
     # ---- đọc phụ đề
     s_sub.change(preview_subtitles, s_sub, s_info)
     s_go.click(convert_srt,
-               [s_sub, s_engine, s_ref, s_pick, s_lang, s_consent, s_edge_voice, s_edge_rate,
+               [s_sub, s_ref, s_pick, s_lang, s_consent,
                 s_mode, s_fit, s_speed, s_gap, s_fmt],
                [s_player, s_dl, s_log])
     s_halt.click(stop, None, s_log)
