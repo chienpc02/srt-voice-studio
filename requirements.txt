@@ -1,0 +1,6 @@
+gradio>=4.44
+coqui-tts>=0.24
+edge-tts>=6.1
+numpy
+scipy
+imageio-ffmpeg

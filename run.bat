@@ -1,0 +1,13 @@
+@echo off
+cd /d "%~dp0"
+if not exist .venv (
+  echo Dang tao moi truong Python, lan dau se mat vai phut...
+  python -m venv .venv
+  call .venv\Scripts\activate.bat
+  python -m pip install --upgrade pip
+  pip install -r requirements.txt
+) else (
+  call .venv\Scripts\activate.bat
+)
+python app.py
+pause
